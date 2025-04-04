@@ -37,7 +37,7 @@ export default function SignupPage() {
     
     // ตรวจสอบว่าข้อมูลสำคัญครบถ้วน
     if (!formData.User_Name || !formData.First_Name || !formData.Last_Name || 
-        !formData.U_Password || !formData.U_Email) {
+        !formData.U_Password || !formData.U_Email || !formData.U_Phone) {
       setError('กรุณากรอกข้อมูลให้ครบถ้วน')
       return false
     }
@@ -49,14 +49,11 @@ export default function SignupPage() {
       return false
     }
     
-    // ตรวจสอบเบอร์โทรศัพท์ (หากมีการกรอก)
-    if (formData.U_Phone) {
-      // ตรวจสอบว่าเป็นตัวเลขเท่านั้นและมีความยาวไม่เกิน 10 หลัก
-      const phoneRegex = /^\d{1,10}$/
-      if (!phoneRegex.test(formData.U_Phone)) {
-        setError('เบอร์โทรศัพท์ต้องเป็นตัวเลขเท่านั้นและไม่เกิน 10 หลัก')
-        return false
-      }
+    // ตรวจสอบเบอร์โทรศัพท์ (ต้องกรอก)
+    const phoneRegex = /^\d{10}$/
+    if (!phoneRegex.test(formData.U_Phone)) {
+      setError('เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลักเท่านั้น')
+      return false
     }
     
     return true
@@ -202,7 +199,8 @@ export default function SignupPage() {
                 name="U_Phone"
                 type="tel"
                 maxLength="10"
-                pattern="\d{1,10}"
+                required
+                pattern="\d{10}"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 value={formData.U_Phone}
                 onChange={(e) => {
@@ -213,7 +211,6 @@ export default function SignupPage() {
                     U_Phone: value
                   });
                 }}
-                placeholder="ตัวเลือก"
               />
             </div>
             
