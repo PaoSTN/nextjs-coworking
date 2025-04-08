@@ -37,7 +37,7 @@ export default function SignupPage() {
     
     // ตรวจสอบว่าข้อมูลสำคัญครบถ้วน
     if (!formData.User_Name || !formData.First_Name || !formData.Last_Name || 
-        !formData.U_Password || !formData.U_Email || !formData.U_Phone) {
+        !formData.U_Password || !formData.U_Email) {
       setError('กรุณากรอกข้อมูลให้ครบถ้วน')
       return false
     }
@@ -49,11 +49,13 @@ export default function SignupPage() {
       return false
     }
     
-    // ตรวจสอบเบอร์โทรศัพท์ (ต้องกรอก)
-    const phoneRegex = /^\d{10}$/
-    if (!phoneRegex.test(formData.U_Phone)) {
-      setError('เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลักเท่านั้น')
-      return false
+    // ตรวจสอบเบอร์โทรศัพท์ (ถ้ามีการกรอก)
+    if (formData.U_Phone) {
+      const phoneRegex = /^\d{10}$/
+      if (!phoneRegex.test(formData.U_Phone)) {
+        setError('เบอร์โทรศัพท์ต้องเป็นตัวเลข 10 หลักเท่านั้น')
+        return false
+      }
     }
     
     return true
@@ -82,10 +84,11 @@ export default function SignupPage() {
         body: JSON.stringify(dataToSubmit),
       })
       
+      const responseData = await response.json()
+      
       // ตรวจสอบสถานะการตอบกลับ
       if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'ไม่สามารถสร้างบัญชีได้')
+        throw new Error(responseData.error || 'ไม่สามารถสร้างบัญชีได้')
       }
       
       // แสดงข้อความแจ้งเตือนแบบ alert เหมือน JOptionPane ใน Java
@@ -199,7 +202,6 @@ export default function SignupPage() {
                 name="U_Phone"
                 type="tel"
                 maxLength="10"
-                required
                 pattern="\d{10}"
                 className="mt-1 block w-full rounded-md border border-gray-300 px-3 py-2 shadow-sm focus:border-indigo-500 focus:outline-none focus:ring-indigo-500"
                 value={formData.U_Phone}

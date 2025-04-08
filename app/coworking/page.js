@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -13,18 +13,20 @@ export default function CoworkingLoginPage() {
   const [error, setError] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   
-  // Check URL for success parameter on component mount
-  useState(() => {
-    const urlParams = new URLSearchParams(window.location.search)
-    const success = urlParams.get('success')
-    if (success) {
-      // Show alert if success parameter exists
-      alert(success)
-      // Clear the URL parameter after showing the alert
-      window.history.replaceState({}, document.title, window.location.pathname)
+  // เปลี่ยนจาก useState เป็น useEffect
+  useEffect(() => {
+    // ตรวจสอบว่า window มีอยู่หรือไม่ก่อน
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search)
+      const success = urlParams.get('success')
+      if (success) {
+        // Show alert if success parameter exists
+        alert(success)
+        // Clear the URL parameter after showing the alert
+        window.history.replaceState({}, document.title, window.location.pathname)
+      }
     }
-  }, [])
-
+  }, []) 
   const handleChange = (e) => {
     setFormData({
       ...formData,

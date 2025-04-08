@@ -2,8 +2,7 @@
 
 import { NextResponse } from "next/server";
 import { mysqlPool } from "@/utils/db";
-// Comment out bcrypt import as we're not using it for plain text passwords
-// import bcrypt from "bcryptjs";
+import bcrypt from "bcryptjs";
 
 export async function POST(request) {
   try {
@@ -20,9 +19,9 @@ export async function POST(request) {
 
     const db = mysqlPool.promise();
 
-    // ค้นหาผู้ใช้จากชื่อผู้ใช้
+    // ค้นหาผู้ใช้จากชื่อผู้ใช้ - เปลี่ยนจาก UserID เป็น Users
     const [users] = await db.query(
-      "SELECT * FROM UserID WHERE User_Name = ?",
+      "SELECT * FROM Users WHERE User_Name = ?",
       [User_Name]
     );
 
@@ -36,9 +35,8 @@ export async function POST(request) {
 
     const user = users[0];
 
-    // ตรวจสอบรหัสผ่านโดยตรง (เนื่องจากรหัสผ่านเก็บเป็น plain text)
-    // เปลี่ยนจากการใช้ bcrypt.compare เป็นการเปรียบเทียบโดยตรง
-    const isPasswordValid = (U_Password === user.U_Password);
+    // ตรวจสอบรหัสผ่านด้วย bcrypt
+    const isPasswordValid = await bcrypt.compare(U_Password, user.U_Password);
 
     if (!isPasswordValid) {
       return NextResponse.json(
@@ -59,7 +57,7 @@ export async function POST(request) {
   } catch (error) {
     console.error("Login error:", error);
     return NextResponse.json(
-      { error: "เกิดข้อผิดพลาดในการเข้าสู่ระบบ" },
+      { error: `เกิดข้อผิดพลาดในการเข้าสู่ระบบ: ${error.message}` },
       { status: 500 }
     );
   }

@@ -6,7 +6,7 @@ const db = mysqlPool.promise()
 export async function GET(request){
     try {
         const [rows, fields] = await db.query(
-            'SELECT * FROM RoomType'
+            'SELECT * FROM Room'
         )
         return NextResponse.json(rows, {status: 200})
     } catch (error){

@@ -53,7 +53,20 @@ export default function CoworkingHomePage() {
       {/* Header */}
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
-          <h1 className="text-2xl font-bold text-gray-900">Co Working Space</h1>
+          <div className="flex items-center space-x-4">
+            <h1 className="text-2xl font-bold text-gray-900">Co Working Space</h1>
+            <nav className="hidden md:flex space-x-4">
+              <Link href="/coworking/meetingroom" className="text-gray-600 hover:text-indigo-600 font-medium">
+                Meeting Room
+              </Link>
+              <Link href="/coworking/trainingroom" className="text-gray-600 hover:text-indigo-600 font-medium">
+                Training Room
+              </Link>
+              <Link href="/coworking/eventroom" className="text-gray-600 hover:text-indigo-600 font-medium">
+                Event Room
+              </Link>
+            </nav>
+          </div>
           <button
             onClick={handleLogout}
             className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
@@ -92,36 +105,56 @@ export default function CoworkingHomePage() {
           )}
         </div>
         
-        {/* Room Booking Section */}
+        {/* Room Selection Section */}
         <div className="bg-white shadow-md rounded-lg p-6 mt-8">
-          <h2 className="text-xl font-semibold text-gray-800 mb-4">จองห้องประชุม</h2>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">บริการของเรา</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            {/* Meeting Room */}
             <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
-              <h3 className="font-medium text-lg">ห้องประชุมขนาดเล็ก</h3>
-              <p className="text-gray-600 text-sm mt-1">สำหรับ 4-8 คน</p>
-              <p className="text-indigo-600 font-semibold mt-2">฿500 / ชั่วโมง</p>
-              <button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-200">
-                จองห้องประชุม
-              </button>
+              <h3 className="font-medium text-lg mb-2">Meeting Room</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องประชุมหลากหลายขนาด พร้อมอุปกรณ์ทันสมัยรองรับการประชุมทุกรูปแบบ</p>
+              <ul className="text-sm text-gray-600 mb-4 space-y-1">
+                <li>• Meeting Room Type A (ความจุ 8 คน) มี 4 ห้อง</li>
+                <li>• Meeting Room Type B (ความจุ 14 คน) มี 4 ห้อง</li>
+                <li>• Meeting Room Type C (ความจุ 20 คน) มี 3 ห้อง</li>
+              </ul>
+              <Link href="/coworking/meetingroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+                ดูรายละเอียด
+              </Link>
             </div>
+            
+            {/* Training Room */}
             <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
-              <h3 className="font-medium text-lg">ห้องประชุมขนาดกลาง</h3>
-              <p className="text-gray-600 text-sm mt-1">สำหรับ 10-15 คน</p>
-              <p className="text-indigo-600 font-semibold mt-2">฿800 / ชั่วโมง</p>
-              <button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-200">
-                จองห้องประชุม
-              </button>
+              <h3 className="font-medium text-lg mb-2">Training Room</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องสำหรับการฝึกอบรม สัมมนา พร้อมสิ่งอำนวยความสะดวกครบครัน</p>
+              <ul className="text-sm text-gray-600 mb-4 space-y-1">
+                <li>• Training Room Type A (ความจุ 30 คน) มี 2 ห้อง</li>
+                <li>• Training Room Type B (ความจุ 50 คน) มี 1 ห้อง</li>
+              </ul>
+              <Link href="/coworking/trainingroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+                ดูรายละเอียด
+              </Link>
             </div>
+            
+            {/* Event Room */}
             <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
-              <h3 className="font-medium text-lg">ห้องประชุมขนาดใหญ่</h3>
-              <p className="text-gray-600 text-sm mt-1">สำหรับ 20-30 คน</p>
-              <p className="text-indigo-600 font-semibold mt-2">฿1,200 / ชั่วโมง</p>
-              <button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-200">
-                จองห้องประชุม
-              </button>
+              <h3 className="font-medium text-lg mb-2">Event Room</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องอเนกประสงค์ขนาดใหญ่สำหรับจัดงานสัมมนาและกิจกรรมพิเศษ</p>
+              <ul className="text-sm text-gray-600 mb-4 space-y-1">
+                <li>• Event Room (ความจุ 220 คน) มี 1 ห้อง</li>
+                <li>• พื้นที่ใช้สอย 300 ตารางเมตร</li>
+                <li>• สามารถปรับรูปแบบการจัดได้หลากหลาย</li>
+              </ul>
+              <Link href="/coworking/eventroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+                ดูรายละเอียด
+              </Link>
             </div>
           </div>
         </div>
+        
+        {/* Promotion Section */}
+       
+        
       </main>
     </div>
   )
