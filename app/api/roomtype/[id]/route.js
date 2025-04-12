@@ -1,25 +1,40 @@
+// app/api/roomtype/[id]/route.js
+
 import { NextResponse } from "next/server";
 import { mysqlPool } from "@/utils/db";
 
 export async function GET(request, { params }) {
   try {
-    // The params object will have the property that matches your folder name [id]
-    const type_id = params.id;
+    const roomId = params.id;
     
-    const promisePool = mysqlPool.promise();
-    const [rows, fields] = await promisePool.query(
-      `SELECT * FROM RoomType WHERE Type_ID = ?`,
-      [type_id]
-    );
-    
-    // Check if any room was found
-    if (rows.length === 0) {
-      return NextResponse.json({ error: "Room type not found" }, { status: 404 });
+    if (!roomId) {
+      return NextResponse.json(
+        { error: "ต้องระบุรหัสห้องประชุม" },
+        { status: 400 }
+      );
     }
     
-    return NextResponse.json(rows[0], { status: 200 });
+    // กรณีที่ยังไม่มีการเชื่อมต่อกับฐานข้อมูล หรือต้องการข้อมูลทดสอบ
+    const room = {
+      Room_ID: parseInt(roomId),
+      Room_Number: `M-A0${roomId}`,
+      Room_Type: 'Type A',
+      Capacity: 8,
+      Price: 500,
+      Status: 'Available',
+      Description: 'Small meeting room for up to 8 people'
+    };
+    
+    return NextResponse.json({
+      success: true,
+      room: room
+    });
+    
   } catch (error) {
-    console.error("Error fetching room type:", error);
-    return NextResponse.json({ error: "Failed to fetch room type" }, { status: 500 });
+    console.error("Error fetching room details:", error);
+    return NextResponse.json(
+      { error: `ไม่สามารถดึงข้อมูลห้องประชุมได้: ${error.message}` },
+      { status: 500 }
+    );
   }
 }

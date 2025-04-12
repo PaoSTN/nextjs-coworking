@@ -59,20 +59,27 @@ export default function CoworkingHomePage() {
               <Link href="/coworking/meetingroom" className="text-gray-600 hover:text-indigo-600 font-medium">
                 Meeting Room
               </Link>
-              <Link href="/coworking/trainingroom" className="text-gray-600 hover:text-indigo-600 font-medium">
-                Training Room
-              </Link>
-              <Link href="/coworking/eventroom" className="text-gray-600 hover:text-indigo-600 font-medium">
-                Event Room
-              </Link>
+             
             </nav>
           </div>
-          <button
-            onClick={handleLogout}
-            className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
-          >
-            ออกจากระบบ
-          </button>
+          
+          <div className="flex items-center space-x-4">
+            {/* แสดงยอดเงินในกระเป๋า */}
+            
+            {user && (
+              <Link href="/coworking/topup" className="flex items-center bg-green-50 px-4 py-2 rounded-md border border-green-200 hover:bg-green-100 transition-colors">
+                <span className="text-green-800 font-medium mr-1">ยอดเงิน:</span>
+                <span className="text-green-600 font-bold">{parseFloat(user.Balance).toLocaleString('th-TH', {minimumFractionDigits: 2, maximumFractionDigits: 2})} บาท</span>
+              </Link>
+            )}
+            
+            <button
+              onClick={handleLogout}
+              className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
+            >
+              ออกจากระบบ
+            </button>
+          </div>
         </div>
       </header>
       
@@ -100,6 +107,22 @@ export default function CoworkingHomePage() {
                   <p className="text-sm text-gray-500">เบอร์โทรศัพท์</p>
                   <p className="font-medium">{user.U_Phone}</p>
                 </div>
+                <div>
+                  <p className="text-sm text-gray-500">สถานะกระเป๋าเงิน</p>
+                  <p className={`font-medium ${user.Wallet_Status === 'Active' ? 'text-green-600' : 'text-red-600'}`}>
+                    {user.Wallet_Status === 'Active' ? 'ใช้งานได้' : 'ระงับการใช้งาน'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-sm text-gray-500">วันที่ลงทะเบียน</p>
+                  <p className="font-medium">
+                    {new Date(user.Registration_Date).toLocaleDateString('th-TH', {
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric',
+                    })}
+                  </p>
+                </div>
               </div>
             </div>
           )}
@@ -111,25 +134,39 @@ export default function CoworkingHomePage() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Meeting Room */}
             <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
-              <h3 className="font-medium text-lg mb-2">Meeting Room</h3>
-              <p className="text-gray-600 text-sm mb-3">ห้องประชุมหลากหลายขนาด พร้อมอุปกรณ์ทันสมัยรองรับการประชุมทุกรูปแบบ</p>
+              <h3 className="font-medium text-lg mb-2">Meeting Room Type A</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องประชุมขนาดเล็ก (จำนวน6ห้อง)</p>
               <ul className="text-sm text-gray-600 mb-4 space-y-1">
-                <li>• Meeting Room Type A (ความจุ 8 คน) มี 4 ห้อง</li>
-                <li>• Meeting Room Type B (ความจุ 14 คน) มี 4 ห้อง</li>
-                <li>• Meeting Room Type C (ความจุ 20 คน) มี 3 ห้อง</li>
+                <li>• ความจุ 8 คน </li>
+                <li>• โต๊ะประชุมทรงสี่เหลี่ยมผืนผ้า</li>
+                  <li>• จอแสดงผล 55 นิ้ว</li>
+                  <li>• ระบบเสียงคุณภาพสูง</li>
+                  <li>• ไวไฟความเร็วสูง</li>
+                  <li>• ระบบประชุมทางไกล</li>
+                   <br/> 
+                  
+                
+               
               </ul>
-              <Link href="/coworking/meetingroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+              <Link href="/coworking/meetingroom/mta" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
                 ดูรายละเอียด
               </Link>
             </div>
             
             {/* Training Room */}
             <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
-              <h3 className="font-medium text-lg mb-2">Training Room</h3>
-              <p className="text-gray-600 text-sm mb-3">ห้องสำหรับการฝึกอบรม สัมมนา พร้อมสิ่งอำนวยความสะดวกครบครัน</p>
+              <h3 className="font-medium text-lg mb-2">Meeting Room Type B</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องประชุมขนาดกลาง (จำนวน6ห้อง)</p>
               <ul className="text-sm text-gray-600 mb-4 space-y-1">
-                <li>• Training Room Type A (ความจุ 30 คน) มี 2 ห้อง</li>
-                <li>• Training Room Type B (ความจุ 50 คน) มี 1 ห้อง</li>
+                <li>•ความจุ 14 คน</li>
+                <li>• โต๊ะประชุมทรงตัวยู</li>
+                  <li>• จอแสดงผล 65 นิ้ว</li>
+                  <li>• ไวไฟความเร็วสูง</li>
+                  <li>• ระบบประชุมทางไกล</li>
+                  <li>• ไวไฟความเร็วสูง</li>
+                  <li>• บริการเครื่องดื่ม</li>
+                  
+               
               </ul>
               <Link href="/coworking/trainingroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
                 ดูรายละเอียด
@@ -138,19 +175,36 @@ export default function CoworkingHomePage() {
             
             {/* Event Room */}
             <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
-              <h3 className="font-medium text-lg mb-2">Event Room</h3>
-              <p className="text-gray-600 text-sm mb-3">ห้องอเนกประสงค์ขนาดใหญ่สำหรับจัดงานสัมมนาและกิจกรรมพิเศษ</p>
+              <h3 className="font-medium text-lg mb-2">Meeting Room Type C</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องประชุมขนาดใหญ่ (จำนวน5ห้อง)</p>
               <ul className="text-sm text-gray-600 mb-4 space-y-1">
-                <li>• Event Room (ความจุ 220 คน) มี 1 ห้อง</li>
-                <li>• พื้นที่ใช้สอย 300 ตารางเมตร</li>
-                <li>• สามารถปรับรูปแบบการจัดได้หลากหลาย</li>
+                <li>• ความจุ 20 คน</li>
+                <li>• โต๊ะประชุมทรงสี่เหลี่ยมผืนผ้าขนาดใหญ่</li>
+                  <li>• จอแสดงผล 75 นิ้ว</li>
+                  <li>• ระบบประชุมทางไกลคุณภาพสูง</li>
+                  <li>• ระบบเสียงรอบทิศทาง</li>
+                  <li>• ไวไฟความเร็วสูง</li>
+                  <li>• บริการเครื่องดื่มและอาหารว่าง</li>
+                
+                
               </ul>
               <Link href="/coworking/eventroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
                 ดูรายละเอียด
               </Link>
             </div>
           </div>
+          <div className="bg-gray-50 p-4 rounded-md mt-6">
+            <h3 className="font-medium text-gray-900 mb-2">ข้อมูลเพิ่มเติม</h3>
+            <ul className="space-y-1 text-sm text-gray-600">
+              <li>• สามารถจองล่วงหน้าได้สูงสุด 30 วัน</li>
+              <li>• ยกเลิกการจองฟรีล่วงหน้า 36 ชั่วโมง</li>
+              <li>• ทุกห้องมีระบบปรับอากาศและระบบเสียง</li>
+              <li>• มีบริการช่วยเหลือด้านเทคนิคตลอดเวลาทำการ</li>
+              
+            </ul>
+          </div>
         </div>
+        
         
         {/* Promotion Section */}
        
