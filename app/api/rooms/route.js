@@ -10,12 +10,26 @@ export async function GET(request) {
     
     // ในช่วงการพัฒนา เราสามารถส่งข้อมูลทดสอบกลับไปได้
     let allRooms = [
+      // Type A rooms
       { Room_ID: 1, Room_Number: 'M-A01', Room_Type: 'Type A', Capacity: 8, Price: 500, Status: 'Available', Description: 'Small meeting room for up to 8 people' },
       { Room_ID: 2, Room_Number: 'M-A02', Room_Type: 'Type A', Capacity: 8, Price: 500, Status: 'Available', Description: 'Small meeting room for up to 8 people' },
       { Room_ID: 3, Room_Number: 'M-A03', Room_Type: 'Type A', Capacity: 8, Price: 500, Status: 'Available', Description: 'Small meeting room for up to 8 people' },
       { Room_ID: 4, Room_Number: 'M-A04', Room_Type: 'Type A', Capacity: 8, Price: 500, Status: 'Available', Description: 'Small meeting room for up to 8 people' },
       { Room_ID: 5, Room_Number: 'M-A05', Room_Type: 'Type A', Capacity: 8, Price: 500, Status: 'Available', Description: 'Small meeting room for up to 8 people' },
       { Room_ID: 6, Room_Number: 'M-A06', Room_Type: 'Type A', Capacity: 8, Price: 500, Status: 'Available', Description: 'Small meeting room for up to 8 people' },
+      // Type B rooms
+      { Room_ID: 7, Room_Number: 'M-B01', Room_Type: 'Type B', Capacity: 14, Price: 800, Status: 'Available', Description: 'Medium meeting room for up to 14 people' },
+      { Room_ID: 8, Room_Number: 'M-B02', Room_Type: 'Type B', Capacity: 14, Price: 800, Status: 'Available', Description: 'Medium meeting room for up to 14 people' },
+      { Room_ID: 9, Room_Number: 'M-B03', Room_Type: 'Type B', Capacity: 14, Price: 800, Status: 'Available', Description: 'Medium meeting room for up to 14 people' },
+      { Room_ID: 10, Room_Number: 'M-B04', Room_Type: 'Type B', Capacity: 14, Price: 800, Status: 'Available', Description: 'Medium meeting room for up to 14 people' },
+      { Room_ID: 11, Room_Number: 'M-B05', Room_Type: 'Type B', Capacity: 14, Price: 800, Status: 'Available', Description: 'Medium meeting room for up to 14 people' },
+      { Room_ID: 12, Room_Number: 'M-B06', Room_Type: 'Type B', Capacity: 14, Price: 800, Status: 'Available', Description: 'Medium meeting room for up to 14 people' },
+      // Type C rooms
+      { Room_ID: 13, Room_Number: 'M-C01', Room_Type: 'Type C', Capacity: 20, Price: 1200, Status: 'Available', Description: 'Large meeting room for up to 20 people' },
+      { Room_ID: 14, Room_Number: 'M-C02', Room_Type: 'Type C', Capacity: 20, Price: 1200, Status: 'Available', Description: 'Large meeting room for up to 20 people' },
+      { Room_ID: 15, Room_Number: 'M-C03', Room_Type: 'Type C', Capacity: 20, Price: 1200, Status: 'Available', Description: 'Large meeting room for up to 20 people' },
+      { Room_ID: 16, Room_Number: 'M-C04', Room_Type: 'Type C', Capacity: 20, Price: 1200, Status: 'Available', Description: 'Large meeting room for up to 20 people' },
+      { Room_ID: 17, Room_Number: 'M-C05', Room_Type: 'Type C', Capacity: 20, Price: 1200, Status: 'Available', Description: 'Large meeting room for up to 20 people' },
     ];
     
     // ตรวจสอบการจองจากฐานข้อมูล เฉพาะวันที่และช่วงเวลาที่เลือก

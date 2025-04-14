@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+// แสดงสถานะ
 const StatusBadge = ({ status }) => {
   const getStatusStyle = () => {
     switch (status) {
@@ -97,6 +98,24 @@ export default function BookingHistoryPage() {
   const [user, setUser] = useState(null);
   const router = useRouter();
 
+  const fetchBookingHistory = async (userId) => {
+    try {
+      setIsLoading(true);
+      const response = await fetch(`/api/bookings/history?userId=${userId}`);
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || "ไม่สามารถดึงข้อมูลประวัติการจองได้");
+      }
+      const data = await response.json();
+      setBookings(data);
+    } catch (err) {
+      console.error("Error fetching booking history:", err);
+      setError(err.message);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
     const checkAuth = () => {
       const storedUser = localStorage.getItem("user");
@@ -104,7 +123,6 @@ export default function BookingHistoryPage() {
         router.push("/login");
         return null;
       }
-
       try {
         const parsedUser = JSON.parse(storedUser);
         setUser(parsedUser);
@@ -117,34 +135,11 @@ export default function BookingHistoryPage() {
       }
     };
 
-    const fetchBookingHistory = async (userId) => {
-      try {
-        setIsLoading(true);
-        const response = await fetch(`/api/bookings/history?userId=${userId}`);
-        if (!response.ok) {
-          const errorData = await response.json();
-          throw new Error(errorData.error || "ไม่สามารถดึงข้อมูลประวัติการจองได้");
-        }
-        const data = await response.json();
-        setBookings(data);
-      } catch (err) {
-        console.error("Error fetching booking history:", err);
-        setError(err.message);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     const userData = checkAuth();
     if (userData) {
       fetchBookingHistory(userData.User_ID);
     }
   }, [router]);
-
-  const handleLogout = () => {
-    localStorage.removeItem("user");
-    router.push("/login");
-  };
 
   const formatDate = (dateString) => {
     const options = { year: "numeric", month: "long", day: "numeric" };
@@ -152,25 +147,22 @@ export default function BookingHistoryPage() {
   };
 
   const formatTime = (timeString) => {
-    if (!timeString) return "-";
-    return timeString;
+    return timeString || "-";
   };
 
   const handleCancelBooking = async (bookingId) => {
     if (!confirm("คุณต้องการยกเลิกการจองนี้ใช่หรือไม่?")) return;
-
     try {
+      setIsLoading(true);
       const response = await fetch(`/api/bookings/cancel`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ bookingId }),
       });
 
+      const data = await response.json();
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.error || "ไม่สามารถยกเลิกการจองได้");
+        throw new Error(data.error || "ไม่สามารถยกเลิกการจองได้");
       }
 
       setBookings((prevBookings) =>
@@ -182,10 +174,17 @@ export default function BookingHistoryPage() {
       );
 
       alert("ยกเลิกการจองสำเร็จ");
+      if (user) fetchBookingHistory(user.User_ID);
     } catch (err) {
       console.error("Error cancelling booking:", err);
       alert(`เกิดข้อผิดพลาด: ${err.message}`);
+      setIsLoading(false);
     }
+  };
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    router.push("/login");
   };
 
   if (!user) return null;
@@ -195,16 +194,10 @@ export default function BookingHistoryPage() {
       <header className="bg-white shadow">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex justify-between items-center">
           <div className="flex items-center space-x-4">
-          <Link href="/coworking/home" className="text-2xl font-bold text-gray-900">
-              Co Working Space
-            </Link>
+            <h1 className="text-2xl font-bold text-gray-900">Co Working Space</h1>
             <nav className="hidden md:flex space-x-4">
-              <Link href="/coworking/meetingroom" className="text-gray-600 hover:text-indigo-600 font-medium">
-                Meeting Room
-              </Link>
-              <Link href="/coworking/topup/history" className="text-gray-600 hover:text-indigo-600 font-medium">
-                Topup History
-              </Link>
+              <Link href="/coworking/meetingroom" className="text-gray-600 hover:text-indigo-600 font-medium">Meeting Room</Link>
+              <Link href="/coworking/topup/history" className="text-gray-600 hover:text-indigo-600 font-medium">History</Link>
             </nav>
           </div>
           <div className="flex items-center space-x-4">
@@ -216,10 +209,7 @@ export default function BookingHistoryPage() {
                 </span>
               </Link>
             )}
-            <button
-              onClick={handleLogout}
-              className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200"
-            >
+            <button onClick={handleLogout} className="bg-red-600 hover:bg-red-700 text-white font-medium py-2 px-4 rounded-md transition duration-200">
               ออกจากระบบ
             </button>
           </div>
@@ -260,9 +250,7 @@ export default function BookingHistoryPage() {
                   {bookings.map((booking) => (
                     <tr key={booking.Booking_ID} className="hover:bg-gray-50">
                       <td className="px-4 py-3 text-sm font-medium text-gray-800">{booking.Room_Number || booking.Room_ID}</td>
-                      <td className="px-4 py-3 text-sm">
-                        {booking.Room_Type ? <RoomTypeTag type={booking.Room_Type} /> : '-'}
-                      </td>
+                      <td className="px-4 py-3 text-sm">{booking.Room_Type ? <RoomTypeTag type={booking.Room_Type} /> : '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{booking.Capacity ? `${booking.Capacity} คน` : '-'}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">{formatDate(booking.Booking_Date)}</td>
                       <td className="px-4 py-3 text-sm text-gray-700">
@@ -271,12 +259,14 @@ export default function BookingHistoryPage() {
                       <td className="px-4 py-3 text-sm font-medium text-gray-800">
                         {typeof booking.Total_Price === 'number' ? `${booking.Total_Price.toFixed(2)} บาท` : `${parseFloat(booking.Total_Price).toFixed(2)} บาท`}
                       </td>
-                      <td className="px-4 py-3 text-sm"><StatusBadge status={booking.Booking_Status} /></td>
+                      <td className="px-4 py-3 text-sm">
+                        <StatusBadge status={booking.Booking_Status} />
+                      </td>
                       <td className="px-4 py-3 text-right">
                         <div className="flex justify-end space-x-2">
                           <button onClick={() => router.push(`/booking/detail/${booking.Booking_ID}`)} className="text-blue-600 hover:text-blue-800 font-medium text-sm">ดูรายละเอียด</button>
                           {booking.Booking_Status === "Confirmed" && (
-                            <button onClick={() => handleCancelBooking(booking.Booking_ID)} className="text-red-600 hover:text-red-800 font-medium text-sm">ยกเลิก</button>
+                            <button onClick={() => handleCancelBooking(booking.Booking_ID)} className="bg-red-500 hover:bg-red-600 text-white font-medium text-sm px-3 py-1 rounded-md">ยกเลิก</button>
                           )}
                         </div>
                       </td>
@@ -286,10 +276,11 @@ export default function BookingHistoryPage() {
               </table>
             </div>
 
+            {/* Pagination */}
             <div className="flex items-center justify-between px-4 py-3 bg-gray-50">
               <div className="flex-1 flex justify-between">
-                <button className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50" disabled>ก่อนหน้า</button>
-                <button className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50" disabled>ถัดไป</button>
+                <button disabled className="relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">ก่อนหน้า</button>
+                <button disabled className="ml-3 relative inline-flex items-center px-4 py-2 border border-gray-300 text-sm font-medium rounded-md text-gray-700 bg-white hover:bg-gray-50 disabled:opacity-50">ถัดไป</button>
               </div>
             </div>
           </div>

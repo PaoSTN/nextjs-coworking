@@ -177,7 +177,7 @@ export default function CoworkingHomePage() {
                   
                
               </ul>
-              <Link href="/coworking/trainingroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+              <Link href="/coworking/meetingroom/mtb" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
                 ดูรายละเอียด
               </Link>
             </div>
@@ -197,7 +197,7 @@ export default function CoworkingHomePage() {
                 
                 
               </ul>
-              <Link href="/coworking/eventroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+              <Link href="/coworking/meetingroom/mtc" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
                 ดูรายละเอียด
               </Link>
             </div>

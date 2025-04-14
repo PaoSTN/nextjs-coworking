@@ -7,6 +7,8 @@ import Link from 'next/link'
 export default function TopupHistoryPage() {
   const router = useRouter()
   const [transactions, setTransactions] = useState([])
+  const [bookings, setBookings] = useState([])
+  const [combinedData, setCombinedData] = useState([])
   const [user, setUser] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -17,6 +19,7 @@ export default function TopupHistoryPage() {
     to: ''
   })
   const [selectedTransaction, setSelectedTransaction] = useState(null)
+  const [selectedBooking, setSelectedBooking] = useState(null)
 
   useEffect(() => {
     // ตรวจสอบการล็อกอินและดึงข้อมูลผู้ใช้
@@ -36,15 +39,82 @@ export default function TopupHistoryPage() {
         return
       }
     }
-
   }, [router])
 
-  // เมื่อข้อมูลผู้ใช้พร้อม ให้ดึงข้อมูลรายการธุรกรรม
+  // เมื่อข้อมูลผู้ใช้พร้อม ให้ดึงข้อมูลรายการธุรกรรมและการจอง
   useEffect(() => {
     if (user && user.User_ID) {
       fetchTransactions()
+      fetchBookings()
     }
-  }, [user, filter, sortOrder, dateRange])
+  }, [user, dateRange, sortOrder]) // ดึงข้อมูลใหม่เมื่อมีการเปลี่ยนแปลงเรื่องวันที่หรือการเรียงลำดับ
+
+  // รวมข้อมูลและกรองตามประเภท
+  useEffect(() => {
+    if (transactions.length > 0 || bookings.length > 0) {
+      const filteredData = []
+      
+      // เพิ่มธุรกรรมการเติมเงินหากไม่ได้กรองเฉพาะการจอง
+      if (filter === 'all' || filter === 'Topup') {
+        filteredData.push(...transactions.filter(t => t.Transaction_Type === 'Topup'))
+      }
+      
+      // เพิ่มธุรกรรมการจองและข้อมูลการจองหากไม่ได้กรองเฉพาะการเติมเงิน
+      if (filter === 'all' || filter === 'Booking') {
+        // เพิ่มธุรกรรมการจองจากตาราง transactions
+        filteredData.push(...transactions.filter(t => t.Transaction_Type === 'Booking'))
+        
+        // เพิ่มข้อมูลการจองจากตาราง bookings ที่แปลงเป็นรูปแบบธุรกรรม
+        const bookingTransactions = bookings.map(booking => ({
+          // สร้างข้อมูลธุรกรรมจำลองจากข้อมูลการจอง
+          Transaction_ID: `B-${booking.Booking_ID}`,
+          Transaction_Date: booking.Booking_Created || booking.Booking_Date,
+          Transaction_Type: 'Booking',
+          Description: `จองห้อง ${booking.Room_Number || booking.Room_ID} ${booking.Room_Type ? `(${booking.Room_Type})` : ''} วันที่ ${formatDate(booking.Booking_Date, false)}`,
+          Amount: booking.Total_Price,
+          Status: booking.Booking_Status,
+          Payment_Method: booking.Payment_Method,
+          Reference_ID: booking.Booking_ID,
+          isBookingRecord: true,
+          BookingDetails: {
+            bookingId: booking.Booking_ID,
+            roomId: booking.Room_ID,
+            roomNumber: booking.Room_Number,
+            roomType: booking.Room_Type,
+            capacity: booking.Capacity,
+            bookingDate: formatDate(booking.Booking_Date, false),
+            timeSlot: booking.Start_Time && booking.End_Time ? `${booking.Start_Time} - ${booking.End_Time}` : '-',
+            status: booking.Booking_Status
+          },
+          originalBooking: booking // เก็บข้อมูลการจองต้นฉบับไว้
+        }))
+        
+        // กรองออกข้อมูลที่ซ้ำซ้อน (เฉพาะกรณีที่มีทั้งในตาราง transactions และ bookings)
+        const existingBookingIds = new Set(
+          transactions
+            .filter(t => t.Transaction_Type === 'Booking' && t.Reference_ID)
+            .map(t => t.Reference_ID)
+        )
+        
+        const uniqueBookingTransactions = bookingTransactions.filter(
+          bt => !existingBookingIds.has(bt.Reference_ID)
+        )
+        
+        filteredData.push(...uniqueBookingTransactions)
+      }
+      
+      // เรียงลำดับข้อมูลตามวันที่
+      const sortedData = filteredData.sort((a, b) => {
+        const dateA = new Date(a.Transaction_Date)
+        const dateB = new Date(b.Transaction_Date)
+        return sortOrder === 'DESC' ? dateB - dateA : dateA - dateB
+      })
+      
+      setCombinedData(sortedData)
+    } else {
+      setCombinedData([])
+    }
+  }, [transactions, bookings, filter, sortOrder])
 
   // ดึงข้อมูลรายการธุรกรรม
   const fetchTransactions = async () => {
@@ -54,10 +124,6 @@ export default function TopupHistoryPage() {
       // สร้าง URL parameters
       const params = new URLSearchParams()
       params.append('userId', user.User_ID)
-      
-      if (filter !== 'all') {
-        params.append('type', filter)
-      }
       
       if (dateRange.from) {
         params.append('fromDate', dateRange.from)
@@ -72,7 +138,7 @@ export default function TopupHistoryPage() {
       const response = await fetch(`/api/transactions/history?${params.toString()}`)
       
       if (!response.ok) {
-        throw new Error('ไม่สามารถดึงข้อมูลได้')
+        throw new Error('ไม่สามารถดึงข้อมูลธุรกรรมได้')
       }
       
       const data = await response.json()
@@ -80,7 +146,7 @@ export default function TopupHistoryPage() {
       if (data.success) {
         setTransactions(data.transactions || [])
       } else {
-        throw new Error(data.error || 'เกิดข้อผิดพลาดในการดึงข้อมูล')
+        throw new Error(data.error || 'เกิดข้อผิดพลาดในการดึงข้อมูลธุรกรรม')
       }
     } catch (err) {
       console.error('Error fetching transactions:', err)
@@ -90,19 +156,53 @@ export default function TopupHistoryPage() {
     }
   }
 
+  // ดึงข้อมูลประวัติการจอง
+  const fetchBookings = async () => {
+    try {
+      setLoading(true)
+      
+      // สร้าง URL parameters สำหรับการกรองวันที่ (ถ้ามี API รองรับ)
+      const params = new URLSearchParams()
+      params.append('userId', user.User_ID)
+      
+      // ดึงข้อมูลการจอง
+      const response = await fetch(`/api/bookings/history?${params.toString()}`)
+      
+      if (!response.ok) {
+        throw new Error('ไม่สามารถดึงข้อมูลการจองได้')
+      }
+      
+      const data = await response.json()
+      setBookings(data)
+    } catch (err) {
+      console.error('Error fetching bookings:', err)
+      // ไม่ set error ตรงนี้เพื่อให้ยังแสดงข้อมูลธุรกรรมได้แม้การดึงข้อมูลการจองมีปัญหา
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // ฟังก์ชันช่วย
-  const formatDate = (dateString) => {
+  const formatDate = (dateString, includeTime = true) => {
+    if (!dateString) return '-'
+    
     const options = { 
       year: 'numeric', 
       month: 'long', 
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
+      day: 'numeric'
     }
+    
+    if (includeTime) {
+      options.hour = '2-digit'
+      options.minute = '2-digit'
+    }
+    
     return new Date(dateString).toLocaleDateString('th-TH', options)
   }
 
   const formatAmount = (amount, type) => {
+    if (!amount) return '-'
+    
     const number = parseFloat(amount).toFixed(2)
     if (type === 'Topup') {
       return `+฿${number}`
@@ -114,13 +214,12 @@ export default function TopupHistoryPage() {
   // ฟังก์ชันส่งออกข้อมูลเป็น CSV
   const exportToCSV = () => {
     const csvData = [
-      ['วันที่', 'รายละเอียด', 'ประเภท', 'จำนวนเงิน', 'สถานะ'],
-      ...transactions.map(t => [
+      ['วันที่', 'รายละเอียด', 'ประเภท', 'จำนวนเงิน'],
+      ...combinedData.map(t => [
         new Date(t.Transaction_Date).toLocaleDateString('th-TH'),
         t.Description,
         t.Transaction_Type === 'Topup' ? 'เติมเงิน' : 'จองห้อง',
-        t.Amount,
-        t.Status === 'Success' ? 'สำเร็จ' : t.Status === 'Pending' ? 'รอดำเนินการ' : 'ยกเลิก'
+        t.Amount
       ])
     ]
     
@@ -130,25 +229,30 @@ export default function TopupHistoryPage() {
     
     const link = document.createElement('a')
     link.setAttribute('href', url)
-    link.setAttribute('download', 'topup-history.csv')
+    link.setAttribute('download', 'transaction-history.csv')
     link.style.visibility = 'hidden'
     document.body.appendChild(link)
     link.click()
     document.body.removeChild(link)
   }
 
-  // ฟังก์ชันแสดงรายละเอียดธุรกรรม
-  const handleViewTransaction = (transaction) => {
-    setSelectedTransaction(transaction)
+  // ฟังก์ชันแสดงรายละเอียดธุรกรรม/การจอง
+  const handleViewDetail = (item) => {
+    if (item.isBookingRecord) {
+      setSelectedBooking(item.originalBooking)
+    } else {
+      setSelectedTransaction(item)
+    }
   }
 
   // ฟังก์ชันปิดหน้าต่างรายละเอียด
   const handleCloseDetail = () => {
     setSelectedTransaction(null)
+    setSelectedBooking(null)
   }
 
   // แสดงหน้าจอโหลด
-  if (loading) {
+  if (loading && combinedData.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
         <div className="text-center">
@@ -160,7 +264,7 @@ export default function TopupHistoryPage() {
   }
 
   // แสดงหน้าจอเมื่อเกิดข้อผิดพลาด
-  if (error) {
+  if (error && combinedData.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
         <div className="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg max-w-lg w-full">
@@ -280,6 +384,17 @@ export default function TopupHistoryPage() {
           </div>
         </div>
         
+        {/* แสดงสถานะกำลังโหลดข้อมูลเพิ่มเติม */}
+        {loading && combinedData.length > 0 && (
+          <div className="bg-blue-50 border border-blue-200 text-blue-700 px-4 py-3 rounded-md mb-4 flex items-center">
+            <svg className="animate-spin -ml-1 mr-3 h-5 w-5 text-blue-700" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+              <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            <span>กำลังโหลดข้อมูลเพิ่มเติม...</span>
+          </div>
+        )}
+        
         {/* ตารางรายการ */}
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <div className="overflow-x-auto">
@@ -299,57 +414,39 @@ export default function TopupHistoryPage() {
                     จำนวนเงิน
                   </th>
                   <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    สถานะ
-                  </th>
-                  <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase tracking-wider">
                     จัดการ
                   </th>
                 </tr>
               </thead>
               <tbody className="bg-white divide-y divide-gray-200">
-                {transactions.length > 0 ? (
-                  transactions.map((transaction, index) => (
+                {combinedData.length > 0 ? (
+                  combinedData.map((item, index) => (
                     <tr key={index} className="hover:bg-gray-50">
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {formatDate(transaction.Transaction_Date)}
+                        {formatDate(item.Transaction_Date)}
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-600">
-                        {transaction.Description}
+                        {item.Description}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm">
                         <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          transaction.Transaction_Type === 'Topup' 
+                          item.Transaction_Type === 'Topup' 
                             ? 'bg-blue-100 text-blue-800' 
                             : 'bg-purple-100 text-purple-800'
                         }`}>
-                          {transaction.Transaction_Type === 'Topup' ? 'เติมเงิน' : 'จองห้อง'}
+                          {item.Transaction_Type === 'Topup' ? 'เติมเงิน' : 'จองห้อง'}
                         </span>
                       </td>
                       <td className={`px-6 py-4 whitespace-nowrap text-sm font-medium text-right ${
-                        transaction.Transaction_Type === 'Topup' 
+                        item.Transaction_Type === 'Topup' 
                           ? 'text-green-600' 
                           : 'text-red-600'
                       }`}>
-                        {formatAmount(transaction.Amount, transaction.Transaction_Type)}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                          transaction.Status === 'Success' 
-                            ? 'bg-green-100 text-green-800' 
-                            : transaction.Status === 'Pending'
-                              ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-green-100 text-green-800'
-                        }`}>
-                          {transaction.Status === 'Success' 
-                            ? 'สำเร็จ' 
-                            : transaction.Status === 'Pending' 
-                              ? 'รอดำเนินการ' 
-                              : 'สำเร็จ'}
-                        </span>
+                        {formatAmount(item.Amount, item.Transaction_Type)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">
                         <button
-                          onClick={() => handleViewTransaction(transaction)}
+                          onClick={() => handleViewDetail(item)}
                           className="text-indigo-600 hover:text-indigo-900"
                         >
                           ดูรายละเอียด
@@ -359,7 +456,7 @@ export default function TopupHistoryPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan="6" className="px-6 py-4 text-center text-sm text-gray-500">
+                    <td colSpan="5" className="px-6 py-4 text-center text-sm text-gray-500">
                       ไม่พบรายการที่ตรงกับเงื่อนไขการค้นหา
                     </td>
                   </tr>
@@ -369,23 +466,23 @@ export default function TopupHistoryPage() {
           </div>
           
           {/* สรุปรายการ */}
-          {transactions.length > 0 && (
+          {combinedData.length > 0 && (
             <div className="bg-gray-50 px-6 py-4">
               <div className="flex justify-between items-center">
                 <p className="text-sm text-gray-700">
-                  แสดง {transactions.length} รายการ
+                  แสดง {combinedData.length} รายการ
                 </p>
                 <div className="text-right">
                   <p className="text-sm text-gray-600">รวมเติมเงิน: <span className="font-medium text-green-600">
-                    +฿{transactions
-                      .filter(t => t.Transaction_Type === 'Topup' && t.Status === 'Success')
-                      .reduce((sum, t) => sum + parseFloat(t.Amount), 0)
+                    +฿{combinedData
+                      .filter(t => t.Transaction_Type === 'Topup')
+                      .reduce((sum, t) => sum + parseFloat(t.Amount || 0), 0)
                       .toFixed(2)}
                   </span></p>
                   <p className="text-sm text-gray-600">รวมค่าใช้จ่าย: <span className="font-medium text-red-600">
-                    -฿{transactions
-                      .filter(t => t.Transaction_Type === 'Booking' && t.Status === 'Success')
-                      .reduce((sum, t) => sum + parseFloat(t.Amount), 0)
+                    -฿{combinedData
+                      .filter(t => t.Transaction_Type === 'Booking')
+                      .reduce((sum, t) => sum + parseFloat(t.Amount || 0), 0)
                       .toFixed(2)}
                   </span></p>
                 </div>
@@ -458,22 +555,6 @@ export default function TopupHistoryPage() {
                 </span>
               </div>
               <div className="flex justify-between mb-2">
-                <span className="text-gray-600">สถานะ:</span>
-                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                  selectedTransaction.Status === 'Success' 
-                    ? 'bg-green-100 text-green-800' 
-                    : selectedTransaction.Status === 'Pending'
-                      ? 'bg-yellow-100 text-yellow-800'
-                      : 'bg-red-100 text-red-800'
-                }`}>
-                  {selectedTransaction.Status === 'Success' 
-                    ? 'สำเร็จ' 
-                    : selectedTransaction.Status === 'Pending' 
-                      ? 'รอดำเนินการ' 
-                      : 'ยกเลิก'}
-                </span>
-              </div>
-              <div className="flex justify-between mb-2">
                 <span className="text-gray-600">วิธีชำระเงิน:</span>
                 <span className="font-medium">{selectedTransaction.Payment_Method || '-'}</span>
               </div>
@@ -494,26 +575,113 @@ export default function TopupHistoryPage() {
                 <div className="mt-4 bg-blue-50 p-3 rounded-md">
                   <h5 className="font-medium text-blue-800 mb-1">ข้อมูลการจอง</h5>
                   <ul className="text-sm text-blue-700 space-y-1">
-                    <li>ห้อง: {selectedTransaction.BookingDetails.roomNumber}</li>
-                    <li>วันที่จอง: {selectedTransaction.BookingDetails.bookingDate}</li>
-                    <li>ช่วงเวลา: {selectedTransaction.BookingDetails.timeSlot}</li>
+                    <li>ห้อง: {selectedTransaction.BookingDetails.roomNumber || selectedTransaction.BookingDetails.roomId || '-'}</li>
+                    {selectedTransaction.BookingDetails.roomType && <li>ประเภทห้อง: {selectedTransaction.BookingDetails.roomType}</li>}
+                    {selectedTransaction.BookingDetails.capacity && <li>ความจุ: {selectedTransaction.BookingDetails.capacity} คน</li>}
+                    <li>วันที่จอง: {selectedTransaction.BookingDetails.bookingDate || '-'}</li>
+                    <li>ช่วงเวลา: {selectedTransaction.BookingDetails.timeSlot || '-'}</li>
                   </ul>
                 </div>
               )}
             </div>
             
             <div className="mt-6 flex justify-end">
-              {selectedTransaction.Status === 'Pending' && (
-                <button 
-                  className="mr-2 bg-red-600 text-white px-4 py-2 rounded-md hover:bg-red-700"
-                  onClick={() => {
-                    // ในอนาคตสามารถเพิ่มฟังก์ชันยกเลิกธุรกรรมได้
-                    alert('ฟังก์ชันยกเลิกธุรกรรมยังไม่เปิดให้ใช้งาน');
-                  }}
-                >
-                  ยกเลิกธุรกรรม
-                </button>
+              <button 
+                className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
+                onClick={handleCloseDetail}
+              >
+                ปิด
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal รายละเอียดการจอง */}
+      {selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+          <div className="bg-white rounded-lg shadow-xl max-w-lg w-full p-6">
+            <div className="flex justify-between items-center mb-4">
+              <h3 className="text-xl font-bold text-gray-900">รายละเอียดการจอง</h3>
+              <button 
+                onClick={handleCloseDetail}
+                className="text-gray-400 hover:text-gray-600"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            
+            <div className="bg-gray-50 p-4 rounded-md mb-4">
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">รหัสการจอง:</span>
+                <span className="font-medium">{selectedBooking.Booking_ID}</span>
+              </div>
+              
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">วันที่จอง:</span>
+                <span className="font-medium">{formatDate(selectedBooking.Booking_Date, false)}</span>
+              </div>
+              
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">วันที่ทำรายการ:</span>
+                <span className="font-medium">{formatDate(selectedBooking.Booking_Created)}</span>
+              </div>
+              
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">ห้อง:</span>
+                <span className="font-medium">{selectedBooking.Room_Number || selectedBooking.Room_ID}</span>
+              </div>
+              
+              {selectedBooking.Room_Type && (
+                <div className="flex justify-between mb-2">
+                  <span className="text-gray-600">ประเภทห้อง:</span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${
+                    selectedBooking.Room_Type === 'Type A' ? 'bg-blue-100 text-blue-800' :
+                    selectedBooking.Room_Type === 'Type B' ? 'bg-green-100 text-green-800' :
+                    selectedBooking.Room_Type === 'Type C' ? 'bg-purple-100 text-purple-800' :
+                    'bg-gray-100 text-gray-800'
+                  }`}>
+                    {selectedBooking.Room_Type}
+                  </span>
+                </div>
               )}
+              
+              {selectedBooking.Capacity && (
+                <div className="flex justify-between mb-2">
+                  <span className="text-gray-600">ความจุ:</span>
+                  <span className="font-medium">{selectedBooking.Capacity} คน</span>
+                </div>
+              )}
+              
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">เวลา:</span>
+                <span className="font-medium">
+                  {selectedBooking.Start_Time && selectedBooking.End_Time 
+                    ? `${selectedBooking.Start_Time} - ${selectedBooking.End_Time}` 
+                    : '-'}
+                </span>
+              </div>
+              
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">ราคา:</span>
+                <span className="font-medium text-red-600">฿{parseFloat(selectedBooking.Total_Price).toFixed(2)}</span>
+              </div>
+              
+              <div className="flex justify-between mb-2">
+                <span className="text-gray-600">วิธีชำระเงิน:</span>
+                <span className="font-medium">{selectedBooking.Payment_Method || '-'}</span>
+              </div>
+            </div>
+            
+            <div className="mt-6 flex justify-end">
+              <Link
+                href={`/booking/detail/${selectedBooking.Booking_ID}`}
+                className="mr-2 bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+              >
+                ดูรายละเอียดเพิ่มเติม
+              </Link>
               <button 
                 className="bg-indigo-600 text-white px-4 py-2 rounded-md hover:bg-indigo-700"
                 onClick={handleCloseDetail}
