@@ -78,6 +78,9 @@ export default function MeetingRoomTypeB() {
         }
         const roomsData = await roomsResponse.json()
         
+        // ตรวจสอบข้อมูลห้องที่ได้รับ
+        console.log('Rooms data received:', roomsData.rooms)
+        
         setRooms(roomsData.rooms || [])
       } catch (err) {
         console.error('Error fetching rooms:', err)
@@ -160,19 +163,32 @@ export default function MeetingRoomTypeB() {
     setBookingError(null)
     
     try {
+      // ตรวจสอบว่ามีข้อมูลที่จำเป็นครบถ้วน
+      if (!user || !user.User_ID) {
+        throw new Error('ข้อมูลผู้ใช้ไม่ถูกต้อง กรุณาเข้าสู่ระบบอีกครั้ง');
+      }
+      
+      if (!selectedRoom || !selectedRoom.Room_ID) {
+        throw new Error('ข้อมูลห้องไม่ถูกต้อง กรุณาเลือกห้องอีกครั้ง');
+      }
+      
+      // แปลงรูปแบบวันที่ให้เป็น YYYY-MM-DD เสมอ
+      const formattedDate = new Date(selectedDate).toISOString().split('T')[0];
+      
       // คำนวณราคาทั้งหมด
       const totalPrice = calculatePrice(selectedRoom.Price, selectedTimeSlot)
       
       // เตรียมข้อมูลที่จะส่ง
       const bookingData = {
-        userId: user.User_ID,
-        roomId: selectedRoom.Room_ID,
+        userId: parseInt(user.User_ID),
+        roomId: parseInt(selectedRoom.Room_ID),
         timeSlotId: parseInt(selectedTimeSlot),
-        bookingDate: selectedDate,
-        totalPrice: totalPrice
+        bookingDate: formattedDate,
+        totalPrice: parseFloat(totalPrice)
       };
       
-      console.log('Sending booking data:', bookingData);
+      // แสดงข้อมูลอย่างละเอียดในคอนโซล
+      console.log('Sending booking data (detailed):', JSON.stringify(bookingData, null, 2));
       
       // ส่งข้อมูลไปยัง API เพื่อสร้างการจองและบันทึกลงฐานข้อมูล
       const response = await fetch('/api/bookings/create', {
@@ -183,41 +199,42 @@ export default function MeetingRoomTypeB() {
         body: JSON.stringify(bookingData),
       })
       
+      console.log('Response status:', response.status);
+      
       // ตรวจสอบว่ามีข้อผิดพลาดหรือไม่
       if (!response.ok) {
         let errorMessage = 'ไม่สามารถจองห้องประชุมได้';
         
-        // อ่าน response เป็นข้อความก่อน
-        const responseText = await response.text();
-        
         try {
-          // ลองแปลงเป็น JSON
-          const errorData = JSON.parse(responseText);
-          errorMessage = errorData.error || errorMessage;
+          const errorResponse = await response.json();
+          console.log('Error response:', errorResponse);
+          errorMessage = errorResponse.error || errorMessage;
         } catch (e) {
-          // ถ้าไม่ใช่ JSON ใช้ข้อความที่ได้มา
-          errorMessage = responseText || errorMessage;
+          console.log('Could not parse error response as JSON:', e);
+          const responseText = await response.text();
+          console.log('Response text:', responseText);
+          errorMessage = responseText || response.statusText || errorMessage;
         }
         
         throw new Error(errorMessage);
       }
 
       // ถ้าสำเร็จ แปลงข้อมูลที่ได้รับกลับมา
-      const responseText = await response.text();
-      const data = JSON.parse(responseText);
+      const responseData = await response.json();
+      console.log('Success response:', responseData);
         
       // อัพเดท localStorage ด้วยข้อมูลผู้ใช้ที่อัพเดทแล้ว
-      if (typeof window !== 'undefined' && data.user) {
+      if (typeof window !== 'undefined' && responseData.user) {
         try {
-          localStorage.setItem('user', JSON.stringify(data.user))
+          localStorage.setItem('user', JSON.stringify(responseData.user))
         } catch (err) {
           console.error('Error saving to localStorage:', err)
         }
       }
       
       // อัพเดทข้อมูลผู้ใช้ในหน้า
-      if (data.user) {
-        setUser(data.user)
+      if (responseData.user) {
+        setUser(responseData.user)
       }
       
       // แสดงการจองสำเร็จ
