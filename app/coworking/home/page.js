@@ -59,7 +59,16 @@ export default function CoworkingHomePage() {
               <Link href="/coworking/meetingroom" className="text-gray-600 hover:text-indigo-600 font-medium">
                 Meeting Room
               </Link>
-             
+            </nav>
+            <nav className="hidden md:flex space-x-4">
+              <Link href="/coworking/topup/history" className="text-gray-600 hover:text-indigo-600 font-medium">
+                Topup History
+              </Link>
+            </nav>
+            <nav className="hidden md:flex space-x-4">
+              <Link href="/coworking/bookinghistory" className="text-gray-600 hover:text-indigo-600 font-medium">
+                booking History
+              </Link>
             </nav>
           </div>
           

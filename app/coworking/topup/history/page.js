@@ -338,13 +338,13 @@ export default function TopupHistoryPage() {
                             ? 'bg-green-100 text-green-800' 
                             : transaction.Status === 'Pending'
                               ? 'bg-yellow-100 text-yellow-800'
-                              : 'bg-red-100 text-red-800'
+                              : 'bg-green-100 text-green-800'
                         }`}>
                           {transaction.Status === 'Success' 
                             ? 'สำเร็จ' 
                             : transaction.Status === 'Pending' 
                               ? 'รอดำเนินการ' 
-                              : 'ยกเลิก'}
+                              : 'สำเร็จ'}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-center">

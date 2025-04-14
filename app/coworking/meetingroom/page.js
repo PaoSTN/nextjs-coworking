@@ -10,15 +10,12 @@ export default function MeetingRoomPage() {
   const [loading, setLoading] = useState(true)
   
   useEffect(() => {
-    // Check user data from localStorage when page loads
     const checkAuth = () => {
       const userData = localStorage.getItem('user')
       if (!userData) {
-        // If no user data (not logged in), redirect to login page
         router.push('/coworking')
       } else {
         try {
-          // Parse user data from JSON string
           const parsedUser = JSON.parse(userData)
           setUser(parsedUser)
         } catch (err) {
@@ -34,9 +31,7 @@ export default function MeetingRoomPage() {
   }, [router])
 
   const handleLogout = () => {
-    // Clear user data from localStorage
     localStorage.removeItem('user')
-    // Redirect to login page
     router.push('/coworking')
   }
 
@@ -88,60 +83,57 @@ export default function MeetingRoomPage() {
           
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
             {/* Meeting Room Type A */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition duration-200">
-              <div className="p-4">
-                <h3 className="font-medium text-lg">Meeting Room Type A</h3>
-                <p className="text-gray-600 text-sm mt-1">ความจุ 8 คน (มี 4 ห้อง)</p>
-                <ul className="mt-3 space-y-2 text-sm text-gray-600">
-                  <li>• โต๊ะประชุมทรงสี่เหลี่ยมผืนผ้า</li>
-                  <li>• จอแสดงผล 55 นิ้ว</li>
-                  <li>• ระบบเสียงคุณภาพสูง</li>
-                  <li>• ไวไฟความเร็วสูง</li>
-                </ul>
-                <p className="text-indigo-600 font-semibold mt-4">฿500 / ชั่วโมง</p>
-                <button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-200">
-                  จองห้องประชุม
-                </button>
-              </div>
+            <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
+              <h3 className="font-medium text-lg mb-2">Meeting Room Type A</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องประชุมขนาดเล็ก (จำนวน6ห้อง)</p>
+              <ul className="text-sm text-gray-600 mb-4 space-y-1">
+                <li>• ความจุ 8 คน </li>
+                <li>• โต๊ะประชุมทรงสี่เหลี่ยมผืนผ้า</li>
+                <li>• จอแสดงผล 55 นิ้ว</li>
+                <li>• ระบบเสียงคุณภาพสูง</li>
+                <li>• ไวไฟความเร็วสูง</li>
+                <li>• ระบบประชุมทางไกล</li>
+                <br/>
+              </ul>
+              <Link href="/coworking/meetingroom/mta" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+                ดูรายละเอียด
+              </Link>
             </div>
             
             {/* Meeting Room Type B */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition duration-200">
-              <div className="p-4">
-                <h3 className="font-medium text-lg">Meeting Room Type B</h3>
-                <p className="text-gray-600 text-sm mt-1">ความจุ 14 คน (มี 4 ห้อง)</p>
-                <ul className="mt-3 space-y-2 text-sm text-gray-600">
-                  <li>• โต๊ะประชุมทรงตัวยู</li>
-                  <li>• จอแสดงผล 65 นิ้ว</li>
-                  <li>• ระบบประชุมทางไกล</li>
-                  <li>• ไวไฟความเร็วสูง</li>
-                  <li>• บริการเครื่องดื่ม</li>
-                </ul>
-                <p className="text-indigo-600 font-semibold mt-4">฿800 / ชั่วโมง</p>
-                <button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-200">
-                  จองห้องประชุม
-                </button>
-              </div>
+            <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
+              <h3 className="font-medium text-lg mb-2">Meeting Room Type B</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องประชุมขนาดกลาง (จำนวน6ห้อง)</p>
+              <ul className="text-sm text-gray-600 mb-4 space-y-1">
+                <li>•ความจุ 14 คน</li>
+                <li>• โต๊ะประชุมทรงตัวยู</li>
+                <li>• จอแสดงผล 65 นิ้ว</li>
+                <li>• ไวไฟความเร็วสูง</li>
+                <li>• ระบบประชุมทางไกล</li>
+                <li>• บริการเครื่องดื่ม</li>
+                <br/>
+              </ul>
+              <Link href="/coworking/trainingroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+                ดูรายละเอียด
+              </Link>
             </div>
             
             {/* Meeting Room Type C */}
-            <div className="border border-gray-200 rounded-lg overflow-hidden hover:shadow-md transition duration-200">
-              <div className="p-4">
-                <h3 className="font-medium text-lg">Meeting Room Type C</h3>
-                <p className="text-gray-600 text-sm mt-1">ความจุ 20 คน (มี 3 ห้อง)</p>
-                <ul className="mt-3 space-y-2 text-sm text-gray-600">
-                  <li>• โต๊ะประชุมทรงสี่เหลี่ยมผืนผ้าขนาดใหญ่</li>
-                  <li>• จอแสดงผล 75 นิ้ว</li>
-                  <li>• ระบบประชุมทางไกลคุณภาพสูง</li>
-                  <li>• ระบบเสียงรอบทิศทาง</li>
-                  <li>• ไวไฟความเร็วสูง</li>
-                  <li>• บริการเครื่องดื่มและอาหารว่าง</li>
-                </ul>
-                <p className="text-indigo-600 font-semibold mt-4">฿1,200 / ชั่วโมง</p>
-                <button className="w-full mt-4 bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm transition duration-200">
-                  จองห้องประชุม
-                </button>
-              </div>
+            <div className="border border-gray-200 rounded-lg p-4 hover:shadow-md transition duration-200">
+              <h3 className="font-medium text-lg mb-2">Meeting Room Type C</h3>
+              <p className="text-gray-600 text-sm mb-3">ห้องประชุมขนาดใหญ่ (จำนวน5ห้อง)</p>
+              <ul className="text-sm text-gray-600 mb-4 space-y-1">
+                <li>• ความจุ 20 คน</li>
+                <li>• โต๊ะประชุมทรงสี่เหลี่ยมผืนผ้าขนาดใหญ่</li>
+                <li>• จอแสดงผล 75 นิ้ว</li>
+                <li>• ระบบประชุมทางไกลคุณภาพสูง</li>
+                <li>• ระบบเสียงรอบทิศทาง</li>
+                <li>• ไวไฟความเร็วสูง</li>
+                <li>• บริการเครื่องดื่มและอาหารว่าง</li>
+              </ul>
+              <Link href="/coworking/eventroom" className="block w-full bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-4 rounded-md text-sm text-center transition duration-200">
+                ดูรายละเอียด
+              </Link>
             </div>
           </div>
           
