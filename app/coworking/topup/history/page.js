@@ -211,30 +211,8 @@ export default function TopupHistoryPage() {
     }
   }
 
-  // ฟังก์ชันส่งออกข้อมูลเป็น CSV
-  const exportToCSV = () => {
-    const csvData = [
-      ['วันที่', 'รายละเอียด', 'ประเภท', 'จำนวนเงิน'],
-      ...combinedData.map(t => [
-        new Date(t.Transaction_Date).toLocaleDateString('th-TH'),
-        t.Description,
-        t.Transaction_Type === 'Topup' ? 'เติมเงิน' : 'จองห้อง',
-        t.Amount
-      ])
-    ]
-    
-    const csvContent = csvData.map(row => row.join(',')).join('\n')
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-    
-    const link = document.createElement('a')
-    link.setAttribute('href', url)
-    link.setAttribute('download', 'transaction-history.csv')
-    link.style.visibility = 'hidden'
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-  }
+ 
+  
 
   // ฟังก์ชันแสดงรายละเอียดธุรกรรม/การจอง
   const handleViewDetail = (item) => {
@@ -371,15 +349,7 @@ export default function TopupHistoryPage() {
                   <option value="ASC">เก่าสุด</option>
                 </select>
               </div>
-              <button
-                onClick={exportToCSV}
-                className="px-4 py-2 rounded-md bg-green-600 text-white font-medium hover:bg-green-700 flex items-center"
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                  <path fillRule="evenodd" d="M3 17a1 1 0 011-1h12a1 1 0 110 2H4a1 1 0 01-1-1zm3.293-7.707a1 1 0 011.414 0L9 10.586V3a1 1 0 112 0v7.586l1.293-1.293a1 1 0 111.414 1.414l-3 3a1 1 0 01-1.414 0l-3-3a1 1 0 010-1.414z" clipRule="evenodd" />
-                </svg>
-                ส่งออก CSV
-              </button>
+             
             </div>
           </div>
         </div>
